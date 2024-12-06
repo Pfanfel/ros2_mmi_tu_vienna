@@ -3,6 +3,8 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from sshkeyboard import listen_keyboard, stop_listening
 
+from color_led_interface.msg import LedCommand
+
 
 class KeyboardPublisher(Node):
     def __init__(self):

@@ -16,6 +16,7 @@
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>python3-sshkeyboard-pip</exec_depend>
+  <exec_depend>color_led_interface</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>
