@@ -54,3 +54,48 @@ This project uses [sshkeyboard](https://sshkeyboard.readthedocs.io/en/latest/) f
 - No X server dependency
 - No root access required
 - No external dependencies
+
+## Running ROS2 Nodes
+
+### Installing Dependencies
+
+Before building the workspace, resolve package dependencies:
+
+```bash
+# Navigate to workspace root
+cd ..
+
+# Install dependencies
+rosdep install -i --from-path src --rosdistro humble -y
+```
+
+### Building the Workspace
+
+From the workspace root:
+
+```bash
+# Build packages with symlink install
+colcon build --symlink-install
+```
+
+Note: `--symlink-install` prevents rebuilding when modifying Python scripts.
+
+### Sourcing the Workspace
+
+Open a new terminal and run:
+
+```bash
+source /opt/ros/humble/setup.zsh && source install/setup.zsh
+```
+
+Important: Always source in a new terminal to avoid build conflicts.
+
+### Running Packages
+
+Execute nodes using:
+
+```bash
+ros2 run color_led <NODE_NAME>
+```
+
+Note: Node names are configured in `ros2/src/color_led/setup.py` under `console_scripts`.
