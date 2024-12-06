@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+from color_led_interface.msg import LedCommand
 import serial
 
 
@@ -8,30 +8,20 @@ class ArduinoSubscriber(Node):
     def __init__(self):
         super().__init__("arduino_subscriber")
 
-        # Parameters
-        self.declare_parameter("serial_port", "/dev/ttyACM0")
-        self.declare_parameter("baud_rate", 9600)
-        self.declare_parameter("subscribe_topic", "arduino_in")
+        # Create subscriber
+        self.subscription = self.create_subscription(
+            LedCommand, "arduino_in", self.send_to_arduino, 10
+        )
+        self.subscription  # prevent unused variable warning
 
-        # Serial connection
-        serial_port = (
-            self.get_parameter("serial_port").get_parameter_value().string_value
-        )
-        baud_rate = self.get_parameter("baud_rate").get_parameter_value().integer_value
-        self.serial_conn = serial.Serial(serial_port, baud_rate, timeout=1)
-
-        # Subscriber
-        subscribe_topic = (
-            self.get_parameter("subscribe_topic").get_parameter_value().string_value
-        )
-        self.subscription_ = self.create_subscription(
-            String, subscribe_topic, self.send_to_arduino, 10
-        )
+        # Initialize serial connection
+        self.serial_conn = serial.Serial("/dev/ttyACM0", 9600)
 
     def send_to_arduino(self, msg):
         try:
-            self.serial_conn.write((msg.data + "\n").encode("utf-8"))
-            self.get_logger().info(f"Sent to Arduino: {msg.data}")
+            command = f"{msg.led_id},{msg.r_value},{msg.g_value},{msg.b_value}\n"
+            self.serial_conn.write(command.encode("utf-8"))
+            self.get_logger().info(f"Sent to Arduino: {command}")
         except Exception as e:
             self.get_logger().error(f"Error writing to serial: {e}")
 

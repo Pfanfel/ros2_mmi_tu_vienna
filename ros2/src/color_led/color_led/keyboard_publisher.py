@@ -11,26 +11,32 @@ class KeyboardPublisher(Node):
         super().__init__("keyboard_publisher")
 
         # Create publisher
-        self.publisher_ = self.create_publisher(String, "arduino_in", 10)
+        self.publisher_ = self.create_publisher(LedCommand, "arduino_in", 10)
 
         # Command mappings
         self.key_commands = {
-            "q": "LED1_ON",
-            "w": "LED1_OFF",
-            "a": "LED2_ON",
-            "s": "LED2_OFF",
+            "q": ("LED1_ON", 1, 255, 0, 0),
+            "w": ("LED1_OFF", 1, 0, 0, 0),
+            "a": ("LED2_ON", 2, 0, 255, 0),
+            "s": ("LED2_OFF", 2, 0, 0, 0),
+            "o": ("RGB_LED_ON", 1, 255, 255, 255),
+            "p": ("RGB_LED_OFF", 1, 0, 0, 0),
         }
 
         self.get_logger().info(
-            "Keyboard publisher started. Press q/w for LED1, a/s for LED2. ESC to exit"
+            "Keyboard publisher started. Press q/w for LED1, a/s for LED2, o/p for RGB LED. ESC to exit"
         )
 
     def on_press(self, key):
         if key in self.key_commands:
-            msg = String()
-            msg.data = self.key_commands[key]
+            command, led_id, r_value, g_value, b_value = self.key_commands[key]
+            msg = LedCommand()
+            msg.led_id = led_id
+            msg.r_value = r_value
+            msg.g_value = g_value
+            msg.b_value = b_value
             self.publisher_.publish(msg)
-            self.get_logger().info(f"Published: {msg.data}")
+            self.get_logger().info(f"Published: {command} with values {msg}")
 
     def start_listening(self):
         listen_keyboard(on_press=self.on_press, until="esc")
