@@ -6,7 +6,9 @@ This project demonstrates using ROS2 to control an Arduino with RGB LEDs. It con
 
 ### Demo
 
-<video src='assets/vids/mmi_demo.mp4' width=480/>
+<video src='assets/vids/mmi_demo.mp4' width="480" controls>
+  Your browser does not support the video tag.
+</video>
 
 ### ROS2 Setup
 
