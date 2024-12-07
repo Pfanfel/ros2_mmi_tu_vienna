@@ -2,41 +2,65 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
 from sshkeyboard import listen_keyboard, stop_listening
-
 from color_led_interface.msg import LedCommand
 
 
 class KeyboardPublisher(Node):
     def __init__(self):
         super().__init__("keyboard_publisher")
-
-        # Create publisher
         self.publisher_ = self.create_publisher(LedCommand, "arduino_in", 10)
 
-        # Command mappings
-        self.key_commands = {
-            "q": ("LED1_ON", 1, 255, 0, 0),
-            "w": ("LED1_OFF", 1, 0, 0, 0),
-            "a": ("LED2_ON", 2, 0, 255, 0),
-            "s": ("LED2_OFF", 2, 0, 0, 0),
-            "o": ("RGB_LED_ON", 1, 255, 255, 255),
-            "p": ("RGB_LED_OFF", 1, 0, 0, 0),
-        }
+        # State tracking
+        self.current_channel = None
+        self.current_value = ""
+        self.rgb_values = {"r": 0, "g": 0, "b": 0}
 
         self.get_logger().info(
-            "Keyboard publisher started. Press q/w for LED1, a/s for LED2, o/p for RGB LED. ESC to exit"
+            "Keyboard publisher started.\n"
+            "- Press r/g/b to select channel, type value (0-255), enter to send\n"
+            "- Press 'o' for full white, 'p' for off\n"
+            "- ESC to exit"
         )
 
     def on_press(self, key):
-        if key in self.key_commands:
-            command, led_id, r_value, g_value, b_value = self.key_commands[key]
-            msg = LedCommand()
-            msg.led_id = led_id
-            msg.r_value = r_value
-            msg.g_value = g_value
-            msg.b_value = b_value
-            self.publisher_.publish(msg)
-            self.get_logger().info(f"Published: {command} with values {msg}")
+        if key == "o":  # Set all channels to 255 (white)
+            self.rgb_values = {"r": 255, "g": 255, "b": 255}
+            self._publish_current_values()
+
+        elif key == "p":  # Set all channels to 0 (off)
+            self.rgb_values = {"r": 0, "g": 0, "b": 0}
+            self._publish_current_values()
+
+        elif key in ["r", "g", "b"]:
+            self.current_channel = key
+            self.current_value = ""
+            self.get_logger().info(f"Selected {key.upper()} channel")
+
+        elif key.isdigit() and self.current_channel:
+            self.current_value += key
+            self.get_logger().info(f"Current value: {self.current_value}")
+
+        elif key == "enter" and self.current_channel and self.current_value:
+            try:
+                value = min(255, max(0, int(self.current_value)))
+                self.rgb_values[self.current_channel] = value
+                self._publish_current_values()
+                self.current_channel = None
+                self.current_value = ""
+            except ValueError:
+                self.get_logger().error("Invalid input value")
+                self.current_value = ""
+
+    def _publish_current_values(self):
+        msg = LedCommand()
+        msg.led_id = 1
+        msg.r_value = self.rgb_values["r"]
+        msg.g_value = self.rgb_values["g"]
+        msg.b_value = self.rgb_values["b"]
+        self.publisher_.publish(msg)
+        self.get_logger().info(
+            f"Published RGB values: R={msg.r_value}, G={msg.g_value}, B={msg.b_value}"
+        )
 
     def start_listening(self):
         listen_keyboard(on_press=self.on_press, until="esc")
@@ -46,7 +70,6 @@ def main(args=None):
     rclpy.init(args=args)
     node = KeyboardPublisher()
     try:
-        # Start keyboard listener in a way that doesn't block rclpy.spin
         node.create_timer(0.1, lambda: node.start_listening())
         rclpy.spin(node)
     except KeyboardInterrupt:

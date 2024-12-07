@@ -1,5 +1,40 @@
 # tu_ros2_mmi
 
+## Project Overview
+
+This project demonstrates using ROS2 to control an Arduino with RGB LEDs. It consists of several ROS2 nodes and a custom message type to realize communication between a keyboard, a ROS2 system, and an Arduino, working on Windows under WSL2.
+
+### ROS2 Setup
+
+- **Topics**:
+
+  - `arduino_in`: Used for sending `LedCommand` messages from the `KeyboardPublisher` node to the `ArduinoSubscriber` node.
+  - `arduino_out`: Used for publishing messages from the Arduino to the ROS2 system via the `ArduinoPublisher` node.
+
+- **Nodes**:
+  - `KeyboardPublisher`: Captures keyboard inputs and publishes `LedCommand` messages to the `arduino_in` topic.
+  - `ArduinoSubscriber`: Subscribes to the `arduino_in` topic, receives `LedCommand` messages, and sends corresponding commands to the Arduino via serial communication.
+  - `ArduinoPublisher`: Reads data from the Arduino via serial communication and publishes it to the `arduino_out` topic.
+
+### Custom Message Type
+
+- **LedCommand.msg**:
+  ```msg
+  int32 led_id
+  int32 r_value
+  int32 g_value
+  int32 b_value
+  ```
+  This message type is used to specify the LED ID and RGB values for controlling the LED colors on the Arduino.
+
+### Arduino Code
+
+The Arduino code listens for incoming commands from the ROS2 system, parses the commands, and sets the RGB LED colors accordingly. Finally it responds with the commands it executed in the `arduino_out` topic.
+
+### Arduino Schematic
+
+![Arduino Schematic](imgs/arduino_schematic.jpg)
+
 ## Prerequisites
 
 ### WSL2 Setup (Optional)
