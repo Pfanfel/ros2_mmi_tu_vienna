@@ -1,87 +1,68 @@
-void setup() {
+// Defining variables and the GPIO pins on Arduino
+int redPin = 5;
+int greenPin = 6;
+int bluePin = 7;
+
+void setup()
+{
   Serial.begin(9600); // Match the baud rate with the Python script
   pinMode(LED_BUILTIN, OUTPUT);
+
+  // Defining the pins as OUTPUT
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
 }
 
-void loop() {
-  // Send data to ROS2
-  Serial.println("Hello from Arduino");
-
+void loop()
+{
   // Check for incoming commands from ROS2
-  if (Serial.available() > 0) {
+  if (Serial.available() > 0)
+  {
     String command = Serial.readStringUntil('\n');
     Serial.print("Received command: ");
     Serial.println(command);
 
-    // Handle commands using switch-case
-    switch (parseCommand(command)) {
-      case 1: // LED1_ON
-        blinkPattern1();
-        Serial.println("Confirmation: LED1_ON pattern executed");
-        break;
-      case 2: // LED1_OFF
-        blinkPattern2();
-        Serial.println("Confirmation: LED1_OFF pattern executed");
-        break;
-      case 3: // LED2_ON
-        blinkPattern3();
-        Serial.println("Confirmation: LED2_ON pattern executed");
-        break;
-      case 4: // LED2_OFF
-        blinkPattern4();
-        Serial.println("Confirmation: LED2_OFF pattern executed");
-        break;
-      default: // Unknown command
-        Serial.println("Unknown command");
-        break;
-    }
+    // Parse and handle the command
+    handleCommand(command);
   }
 
   delay(1000); // Adjust the frequency of sending data
 }
 
-// Helper function to parse commands
-int parseCommand(String command) {
-  if (command == "LED1_ON") return 1;
-  if (command == "LED1_OFF") return 2;
-  if (command == "LED2_ON") return 3;
-  if (command == "LED2_OFF") return 4;
-  return 0; // Unknown command
-}
+// Function to handle the command
+void handleCommand(String command)
+{
+  int led_id, r_value, g_value, b_value;
+  if (sscanf(command.c_str(), "%d,%d,%d,%d", &led_id, &r_value, &g_value, &b_value) == 4)
+  {
+    Serial.print("Parsed command - LED ID: ");
+    Serial.print(led_id);
+    Serial.print(", R: ");
+    Serial.print(r_value);
+    Serial.print(", G: ");
+    Serial.print(g_value);
+    Serial.print(", B: ");
+    Serial.println(b_value);
 
-// Blinking patterns
-void blinkPattern1() {
-  for (int i = 0; i < 5; i++) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(100);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(100);
+    // Handle the command based on led_id
+    if (led_id == 1)
+    {
+      setColor(r_value, g_value, b_value);
+      Serial.println("RGB LED color set");
+    }
+    // Add more handling for other LED IDs if needed
+  }
+  else
+  {
+    Serial.println("Invalid command format");
   }
 }
 
-void blinkPattern2() {
-  for (int i = 0; i < 3; i++) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(300);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(300);
-  }
-}
-
-void blinkPattern3() {
-  for (int i = 0; i < 2; i++) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(500);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(500);
-  }
-}
-
-void blinkPattern4() {
-  for (int i = 0; i < 4; i++) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(150);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(150);
-  }
+// Function to set the RGB LED color
+void setColor(int redValue, int greenValue, int blueValue)
+{
+  analogWrite(redPin, redValue);
+  analogWrite(greenPin, greenValue);
+  analogWrite(bluePin, blueValue);
 }
