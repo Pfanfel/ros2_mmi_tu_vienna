@@ -4,6 +4,8 @@
 
 This project demonstrates using ROS2 to control an Arduino with RGB LEDs. It consists of several ROS2 nodes and a custom message type to realize communication between a keyboard, a ROS2 system, and an Arduino, working on Windows under WSL2.
 
+![System Overview](assets/imgs/project_mmi.drawio.png)
+
 ### Demo
 
 https://github.com/user-attachments/assets/534a4c6e-c226-4c94-b465-d487a0b0db47
